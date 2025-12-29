@@ -3,95 +3,86 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KLYRION</title>
+<title>KLYRION TV</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- SPLASH -->
-<div id="splash">
-  <img src="logo.svg">
-</div>
-
-<!-- HEADER -->
-<header>
-  <h1>KLYRION</h1>
-  <input id="search" placeholder="Buscar..." oninput="filter()">
+<header class="topbar">
+  <h1>KLYRION TV</h1>
+  <button onclick="show('iptv')">EN VIVO</button>
+  <button onclick="show('movies')">VOD</button>
+  <button onclick="m3uInput.click()">IMPORTAR M3U</button>
 </header>
 
-<!-- CONTENIDO -->
+<input type="file" id="m3uInput" accept=".m3u,.txt" hidden>
+
 <main id="content"></main>
-
-<!-- NAVEGACIÓN -->
-<nav>
-  <button onclick="show('movies')">Películas</button>
-  <button onclick="show('iptv')">IPTV</button>
-</nav>
-
-<!-- PLAYER -->
-<div id="player">
-  <video id="video" controls autoplay></video>
-  <button onclick="closePlayer()">✖</button>
-</div>
 
 <script>
 const DATA_URL = "data.json";
 let DATA = {};
 let CURRENT = [];
 
-/* SPLASH */
-setTimeout(()=>{
-  document.getElementById("splash").style.display="none";
-},2000);
-
-/* CARGAR DATOS */
+/* CARGA */
 async function loadData(){
   const r = await fetch(DATA_URL);
   DATA = await r.json();
-  show("movies");
+  show("iptv");
 }
 
-/* MOSTRAR SECCIÓN */
+/* MOSTRAR */
 function show(type){
-  CURRENT = DATA[type];
+  CURRENT = DATA[type] || [];
   render(CURRENT);
 }
 
-/* RENDER */
+/* RENDER TIPO TV */
 function render(list){
   content.innerHTML="";
   list.forEach(item=>{
-    const c = document.createElement("div");
-    c.className="card";
-    c.innerHTML=`
+    const card = document.createElement("div");
+    card.className="tv-card";
+    card.innerHTML=`
       <img src="${item.img}">
-      <span>▶ VER</span>
+      <div class="tv-title">${item.title}</div>
     `;
-    c.onclick = ()=> play(item.url);
-    content.appendChild(c);
+    card.onclick = ()=> openExternal(item.url);
+    content.appendChild(card);
   });
 }
 
-/* BUSCADOR */
-function filter(){
-  const q = search.value.toLowerCase();
-  render(
-    CURRENT.filter(i =>
-      (i.title || "").toLowerCase().includes(q)
-    )
-  );
+/* REPRODUCTOR EXTERNO */
+function openExternal(url){
+  window.location.href = url;
 }
 
-/* PLAYER */
-function play(url){
-  player.style.display="flex";
-  video.src=url;
-}
-function closePlayer(){
-  video.pause();
-  video.src="";
-  player.style.display="none";
+/* IMPORTAR M3U */
+m3uInput.onchange = e =>{
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = ()=> parseM3U(reader.result);
+  reader.readAsText(file);
+};
+
+function parseM3U(text){
+  const lines = text.split("\n");
+  const list = [];
+  let name = "";
+  lines.forEach(l=>{
+    if(l.startsWith("#EXTINF")){
+      name = l.split(",").pop().trim();
+    }
+    if(l.startsWith("http")){
+      list.push({
+        title: name || "Canal",
+        img: "https://via.placeholder.com/320x180.webp",
+        url: l.trim()
+      });
+    }
+  });
+  render(list);
 }
 
 loadData();
