@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KLYRION</title>
-
 <link rel="stylesheet" href="style.css">
 </head>
 
@@ -19,7 +18,6 @@
 <header>
   <h1>KLYRION</h1>
   <input id="search" placeholder="Buscar..." oninput="filter()">
-  
 </header>
 
 <!-- CONTENIDO -->
@@ -37,27 +35,17 @@
   <button onclick="closePlayer()">✖</button>
 </div>
 
-<!-- PRO -->
-<div id="proBox">
-  <div>
-    <h3>Activar PRO</h3>
-    <input id="proCode" placeholder="Código PRO">
-    <button onclick="checkPro()">Activar</button>
-  </div>
-</div>
-
 <script>
 const DATA_URL = "data.json";
 let DATA = {};
 let CURRENT = [];
-let IS_PRO = localStorage.getItem("pro") === "1";
 
 /* SPLASH */
 setTimeout(()=>{
-  splash.style.display="none";
+  document.getElementById("splash").style.display="none";
 },2000);
 
-/* CARGAR DATA */
+/* CARGAR DATOS */
 async function loadData(){
   const r = await fetch(DATA_URL);
   DATA = await r.json();
@@ -74,14 +62,13 @@ function show(type){
 function render(list){
   content.innerHTML="";
   list.forEach(item=>{
-    const locked = item.pro && !IS_PRO;
     const c = document.createElement("div");
     c.className="card";
     c.innerHTML=`
       <img src="${item.img}">
-      <span>${locked ? "PRO" : "▶ VER"}</span>
+      <span>▶ VER</span>
     `;
-    c.onclick = ()=> locked ? openPro() : play(item.url);
+    c.onclick = ()=> play(item.url);
     content.appendChild(c);
   });
 }
@@ -105,22 +92,6 @@ function closePlayer(){
   video.pause();
   video.src="";
   player.style.display="none";
-}
-
-/* PRO */
-function openPro(){
-  proBox.style.display="flex";
-}
-function checkPro(){
-  if(proCode.value==="KLYRION-PRO"){
-    localStorage.setItem("pro","1");
-    IS_PRO=true;
-    proBox.style.display="none";
-    show("movies");
-    alert("PRO activado");
-  }else{
-    alert("Código incorrecto");
-  }
 }
 
 loadData();
