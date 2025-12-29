@@ -4,21 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KLYRION</title>
+
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
+<!-- SPLASH -->
 <div id="splash">
   <img src="logo.svg">
 </div>
 
-  
 <!-- HEADER -->
 <header>
-  <input id="search" placeholder="Buscar..." oninput="filter()">
-
   <h1>KLYRION</h1>
+  <input id="search" placeholder="Buscar..." oninput="filter()">
   <button onclick="openPro()">PRO</button>
 </header>
 
@@ -32,14 +32,13 @@
   <button onclick="show('iptv')">IPTV</button>
 </nav>
 
-
-<!-- MODAL PLAYER -->
+<!-- PLAYER -->
 <div id="player">
   <video id="video" controls autoplay></video>
   <button onclick="closePlayer()">✖</button>
 </div>
 
-<!-- MODAL PRO -->
+<!-- PRO -->
 <div id="proBox">
   <div>
     <h3>Activar PRO</h3>
@@ -49,82 +48,75 @@
 </div>
 
 <script>
-let CURRENT = [];
-
-function show(type){
-  CURRENT = DATA[type];
-  render(CURRENT);
-}
-
-function render(list){
-  content.innerHTML="";
-  list.forEach(item=>{
-    const locked = item.pro && !IS_PRO;
-    const c=document.createElement("div");
-    c.className="card";
-    c.innerHTML=`
-      <img src="${item.img}">
-      <span>${locked?"PRO":"▶ VER"}</span>
-    `;
-    c.onclick=()=>locked?openPro():play(item.url);
-    content.appendChild(c);
-  });
-}
-
-function filter(){
-  const q=search.value.toLowerCase();
-  render(CURRENT.filter(i=>
-    (i.title||"").toLowerCase().includes(q)
-  ));
-}
-
-
-  
 const DATA_URL = "data.json";
 let DATA = {};
+let CURRENT = [];
 let IS_PRO = localStorage.getItem("pro") === "1";
 
+/* SPLASH */
+setTimeout(()=>{
+  splash.style.display="none";
+},2000);
+
+/* CARGAR DATA */
 async function loadData(){
   const r = await fetch(DATA_URL);
   DATA = await r.json();
   show("movies");
 }
 
+/* MOSTRAR SECCIÓN */
 function show(type){
-  content.innerHTML = "";
-  DATA[type].forEach(item=>{
+  CURRENT = DATA[type];
+  render(CURRENT);
+}
+
+/* RENDER */
+function render(list){
+  content.innerHTML="";
+  list.forEach(item=>{
     const locked = item.pro && !IS_PRO;
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
+    const c = document.createElement("div");
+    c.className="card";
+    c.innerHTML=`
       <img src="${item.img}">
       <span>${locked ? "PRO" : "▶ VER"}</span>
     `;
-    card.onclick = ()=> locked ? openPro() : play(item.url);
-    content.appendChild(card);
+    c.onclick = ()=> locked ? openPro() : play(item.url);
+    content.appendChild(c);
   });
 }
 
-function play(url){
-  player.style.display = "flex";
-  video.src = url;
+/* BUSCADOR */
+function filter(){
+  const q = search.value.toLowerCase();
+  render(
+    CURRENT.filter(i =>
+      (i.title || "").toLowerCase().includes(q)
+    )
+  );
 }
 
+/* PLAYER */
+function play(url){
+  player.style.display="flex";
+  video.src=url;
+}
 function closePlayer(){
   video.pause();
-  video.src = "";
-  player.style.display = "none";
+  video.src="";
+  player.style.display="none";
 }
 
+/* PRO */
 function openPro(){
-  proBox.style.display = "flex";
+  proBox.style.display="flex";
 }
-
 function checkPro(){
-  if(proCode.value === "KLYRION-PRO"){
+  if(proCode.value==="KLYRION-PRO"){
     localStorage.setItem("pro","1");
-    IS_PRO = true;
-    proBox.style.display = "none";
+    IS_PRO=true;
+    proBox.style.display="none";
     show("movies");
     alert("PRO activado");
   }else{
@@ -133,12 +125,6 @@ function checkPro(){
 }
 
 loadData();
-
-setTimeout(()=>{
-  document.getElementById("splash").style.display="none";
-},2000);
-
-  
 </script>
 
 </body>
