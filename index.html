@@ -4,49 +4,92 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KLYRION</title>
-
 <link rel="stylesheet" href="style.css">
-
 </head>
+
 <body>
 
+<!-- HEADER -->
 <header>
   <h1>KLYRION</h1>
+  <button onclick="openPro()">PRO</button>
 </header>
 
+<!-- CONTENIDO -->
 <main id="content"></main>
 
+<!-- NAVEGACIÓN -->
 <nav>
-  <button onclick="show('movies')">🎬 Películas</button>
-  <button onclick="show('iptv')">📡 IPTV</button>
+  <button onclick="show('movies')">Películas</button>
+  <button onclick="show('iptv')">IPTV</button>
 </nav>
+
+<!-- MODAL PLAYER -->
+<div id="player">
+  <video id="video" controls autoplay></video>
+  <button onclick="closePlayer()">✖</button>
+</div>
+
+<!-- MODAL PRO -->
+<div id="proBox">
+  <div>
+    <h3>Activar PRO</h3>
+    <input id="proCode" placeholder="Código PRO">
+    <button onclick="checkPro()">Activar</button>
+  </div>
+</div>
 
 <script>
 const DATA_URL = "data.json";
 let DATA = {};
+let IS_PRO = localStorage.getItem("pro") === "1";
 
 async function loadData(){
   const r = await fetch(DATA_URL);
   DATA = await r.json();
-  show('movies');
+  show("movies");
 }
 
 function show(type){
   content.innerHTML = "";
   DATA[type].forEach(item=>{
-    const d = document.createElement("div");
-    d.className = "card";
-    d.innerHTML = `
+    const locked = item.pro && !IS_PRO;
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
       <img src="${item.img}">
-      <h3>${item.title || item.name}</h3>
-      <button onclick="play('${item.url}')">▶ Ver</button>
+      <span>${locked ? "PRO" : "▶ VER"}</span>
     `;
-    content.appendChild(d);
+    card.onclick = ()=> locked ? openPro() : play(item.url);
+    content.appendChild(card);
   });
 }
 
 function play(url){
-  window.location = url;
+  player.style.display = "flex";
+  video.src = url;
+}
+
+function closePlayer(){
+  video.pause();
+  video.src = "";
+  player.style.display = "none";
+}
+
+function openPro(){
+  proBox.style.display = "flex";
+}
+
+function checkPro(){
+  if(proCode.value === "KLYRION-PRO"){
+    localStorage.setItem("pro","1");
+    IS_PRO = true;
+    proBox.style.display = "none";
+    show("movies");
+    alert("PRO activado");
+  }else{
+    alert("Código incorrecto");
+  }
 }
 
 loadData();
