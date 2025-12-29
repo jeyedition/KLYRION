@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KLYRION</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<header>
+  <h1>KLYRION</h1>
+</header>
+
+<main id="content"></main>
+
+<nav>
+  <button onclick="show('movies')">🎬 Películas</button>
+  <button onclick="show('iptv')">📡 IPTV</button>
+</nav>
+
+<script>
+const DATA_URL = "data.json";
+let DATA = {};
+
+async function loadData(){
+  const r = await fetch(DATA_URL);
+  DATA = await r.json();
+  show('movies');
+}
+
+function show(type){
+  content.innerHTML = "";
+  DATA[type].forEach(item=>{
+    const d = document.createElement("div");
+    d.className = "card";
+    d.innerHTML = `
+      <img src="${item.img}">
+      <h3>${item.title || item.name}</h3>
+      <button onclick="play('${item.url}')">▶ Ver</button>
+    `;
+    content.appendChild(d);
+  });
+}
+
+function play(url){
+  window.location = url;
+}
+
+loadData();
+</script>
+
+</body>
+</html>
