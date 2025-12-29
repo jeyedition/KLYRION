@@ -1,0 +1,16 @@
+{
+  "movies": [
+    {
+      "title": "Origen Nebular",
+      "img": "https://via.placeholder.com/300x450.webp",
+      "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+    }
+  ],
+  "iptv": [
+    {
+      "name": "Canal Demo",
+      "img": "https://via.placeholder.com/300x200.webp",
+      "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+    }
+  ]
+}
