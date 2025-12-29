@@ -135,3 +135,10 @@ nav button{
   100%{transform:scale(1)}
 }
 
+header input{
+  background:#1c1c2b;
+  border:none;
+  padding:6px;
+  color:white;
+  border-radius:6px;
+}
