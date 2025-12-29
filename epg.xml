@@ -1,0 +1,9 @@
+<tv>
+  <programme channel="canal.publico" start="20250101000000">
+    <title>Noticias</title>
+  </programme>
+  <programme channel="canal.publico" start="20250101010000">
+    <title>Documental</title>
+  </programme>
+</tv>
+
