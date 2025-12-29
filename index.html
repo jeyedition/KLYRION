@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KLYRION TV</title>
 <link rel="stylesheet" href="style.css">
+
+<!-- ANDROID TV -->
+<meta name="tv:immersive" content="true">
 </head>
 
 <body>
@@ -12,7 +15,6 @@
 <header class="topbar">
   <h1>KLYRION TV</h1>
   <button onclick="show('iptv')">EN VIVO</button>
-  <button onclick="show('movies')">VOD</button>
   <button onclick="m3uInput.click()">IMPORTAR M3U</button>
 </header>
 
@@ -22,14 +24,33 @@
 
 <script>
 const DATA_URL = "data.json";
+const EPG_URL = "epg.xml";   // tu XMLTV
 let DATA = {};
 let CURRENT = [];
+let EPG = {};
 
 /* CARGA */
 async function loadData(){
   const r = await fetch(DATA_URL);
   DATA = await r.json();
+  await loadEPG();
   show("iptv");
+}
+
+/* EPG */
+async function loadEPG(){
+  try{
+    const r = await fetch(EPG_URL);
+    const t = await r.text();
+    const xml = new DOMParser().parseFromString(t,"text/xml");
+    xml.querySelectorAll("programme").forEach(p=>{
+      const id = p.getAttribute("channel");
+      const title = p.querySelector("title")?.textContent || "";
+      const start = p.getAttribute("start");
+      if(!EPG[id]) EPG[id]=[];
+      EPG[id].push({title,start});
+    });
+  }catch(e){}
 }
 
 /* MOSTRAR */
@@ -38,15 +59,20 @@ function show(type){
   render(CURRENT);
 }
 
-/* RENDER TIPO TV */
+/* RENDER TV + EPG */
 function render(list){
   content.innerHTML="";
   list.forEach(item=>{
+    const now = EPG[item.id]?.[0]?.title || "En vivo";
+    const next = EPG[item.id]?.[1]?.title || "";
     const card = document.createElement("div");
     card.className="tv-card";
+    card.tabIndex=0;
     card.innerHTML=`
       <img src="${item.img}">
       <div class="tv-title">${item.title}</div>
+      <div class="epg-now">Ahora: ${now}</div>
+      <div class="epg-next">${next ? "Luego: "+next : ""}</div>
     `;
     card.onclick = ()=> openExternal(item.url);
     content.appendChild(card);
@@ -60,10 +86,9 @@ function openExternal(url){
 
 /* IMPORTAR M3U */
 m3uInput.onchange = e =>{
-  const file = e.target.files[0];
   const reader = new FileReader();
   reader.onload = ()=> parseM3U(reader.result);
-  reader.readAsText(file);
+  reader.readAsText(e.target.files[0]);
 };
 
 function parseM3U(text){
@@ -76,7 +101,8 @@ function parseM3U(text){
     }
     if(l.startsWith("http")){
       list.push({
-        title: name || "Canal",
+        id: name.toLowerCase().replace(/\s+/g,"."),
+        title: name,
         img: "https://via.placeholder.com/320x180.webp",
         url: l.trim()
       });
