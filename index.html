@@ -3,28 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Media IPTV</title>
+<title>IPTV Smarters Style</title>
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<!-- SPLASH -->
 <div id="splash">Cargando…</div>
 
 <!-- CONTROLES -->
 <div id="controls">
-  <input type="text" id="urlInput"
-    placeholder="Pegar link (m3u, m3u8, mp4, mkv, ts, avi, flv)">
+  <input id="urlInput" type="text" placeholder="Pegar link M3U/M3U8">
   <button onclick="loadFromURL()">Cargar link</button>
-
-  <input type="file"
-    accept=".m3u,.m3u8,.mp4,.mkv,.ts,.avi,.flv"
-    onchange="loadFromFile(this)">
+  <input type="file" accept=".m3u,.m3u8" onchange="loadFromFile(this)">
 </div>
 
-<!-- LISTA -->
-<div id="grid"></div>
+<!-- LAYOUT -->
+<div id="layout">
+  <div id="groups"></div>
+  <div id="channels"></div>
+</div>
 
 <!-- PLAYER -->
 <div id="playerBox">
@@ -33,128 +30,119 @@
 </div>
 
 <script>
-/* =====================
-   CARGAR LINK
-===================== */
+let DATA = {};
+let CURRENT_GROUP = "";
+
+/* --------- CARGA --------- */
 function loadFromURL(){
   const url = urlInput.value.trim();
   if(!url) return;
-
-  if(url.endsWith(".m3u") || url.endsWith(".m3u8")){
-    fetch(url)
-      .then(r=>r.text())
-      .then(parseM3U)
-      .catch(()=>alert("No se pudo cargar la lista"));
-  }else{
-    play(url);
-  }
+  fetch(url).then(r=>r.text()).then(parseM3U).catch(()=>alert("No se pudo cargar"));
 }
 
-/* =====================
-   CARGAR ARCHIVO
-===================== */
 function loadFromFile(input){
-  const file = input.files[0];
-  if(!file) return;
-
-  if(file.name.endsWith(".m3u") || file.name.endsWith(".m3u8")){
-    const r = new FileReader();
-    r.onload = e => parseM3U(e.target.result);
-    r.readAsText(file);
-  }else{
-    play(URL.createObjectURL(file));
-  }
+  const f = input.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = e => parseM3U(e.target.result);
+  r.readAsText(f);
 }
 
-/* =====================
-   PARSE M3U
-===================== */
+/* --------- PARSE M3U (con grupos) --------- */
 function parseM3U(text){
   const lines = text.split(/\r?\n/);
-  const list = [];
-  let title = "";
+  let title="", group="Otros";
+  const data = {};
 
   lines.forEach(l=>{
-    l = l.trim();
+    l=l.trim();
     if(l.startsWith("#EXTINF")){
+      const g = l.match(/group-title="([^"]+)"/);
+      group = g ? g[1] : "Otros";
       title = l.split(",").pop().trim();
-    }else if(l.startsWith("http")){
-      list.push({ title: title || "Canal", url: l });
-      title = "";
+    } else if(l.startsWith("http")){
+      if(!data[group]) data[group]=[];
+      data[group].push({ title: title||"Canal", url:l });
+      title="";
     }
   });
 
-  localStorage.setItem("IPTV_LIST", JSON.stringify(list));
-  render(list);
+  DATA = data;
+  localStorage.setItem("IPTV_SMARTERS", JSON.stringify(DATA));
+  renderGroups();
 }
 
-/* =====================
-   RENDER
-===================== */
-function render(list){
-  grid.innerHTML = "";
-  list.forEach(i=>{
-    const d = document.createElement("div");
-    d.className = "card";
-    d.textContent = i.title;
-    d.onclick = ()=> play(i.url);
-    grid.appendChild(d);
+/* --------- UI --------- */
+function renderGroups(){
+  const g = document.getElementById("groups");
+  g.innerHTML="";
+  Object.keys(DATA).forEach(k=>{
+    const d=document.createElement("div");
+    d.className="group";
+    d.textContent=k;
+    d.onclick=()=>selectGroup(k);
+    g.appendChild(d);
+  });
+  const first = Object.keys(DATA)[0];
+  if(first) selectGroup(first);
+}
+
+function selectGroup(name){
+  CURRENT_GROUP=name;
+  renderChannels();
+  document.querySelectorAll(".group").forEach(el=>{
+    el.classList.toggle("active", el.textContent===name);
   });
 }
 
-/* =====================
-   PLAYER (INTERNO + VLC)
-===================== */
-function play(url){
-  const lower = url.toLowerCase();
-  const external = [".avi",".flv"];
+function renderChannels(){
+  const c=document.getElementById("channels");
+  c.innerHTML="";
+  DATA[CURRENT_GROUP].forEach(ch=>{
+    const d=document.createElement("div");
+    d.className="channel";
+    d.textContent=ch.title;
+    d.onclick=()=>play(ch.url);
+    c.appendChild(d);
+  });
+}
 
-  // formatos problemáticos -> VLC directo
+/* --------- PLAYER (interno + VLC) --------- */
+function play(url){
+  const lower=url.toLowerCase();
+  const external=[".avi",".flv"];
+
   if(external.some(e=>lower.endsWith(e))){
-    openExternal(url);
-    return;
+    openExternal(url); return;
   }
 
   try{
     playerBox.style.display="flex";
-    player.src = url;
+    player.src=url;
     player.play();
-
-    player.onerror = ()=>{
-      openExternal(url);
-    };
-  }catch(e){
-    openExternal(url);
-  }
+    player.onerror=()=>openExternal(url);
+  }catch(e){ openExternal(url); }
 }
 
 function openExternal(url){
-  alert("El stream se abrirá en un reproductor externo (VLC/MX)");
-  window.location.href = url;
+  alert("Se abrirá en un reproductor externo (VLC/MX)");
+  window.location.href=url;
 }
 
 function closePlayer(){
-  player.pause();
-  player.src="";
+  player.pause(); player.src="";
   playerBox.style.display="none";
 }
 
-/* =====================
-   AUTOLOAD
-===================== */
+/* --------- AUTOLOAD --------- */
 (function(){
-  const saved = localStorage.getItem("IPTV_LIST");
-  if(saved){
-    try{
-      const list = JSON.parse(saved);
-      if(list.length) render(list);
-    }catch(e){
-      localStorage.removeItem("IPTV_LIST");
-    }
+  const s=localStorage.getItem("IPTV_SMARTERS");
+  if(s){
+    try{ DATA=JSON.parse(s); renderGroups(); }catch(e){}
   }
 })();
 
-window.onload = ()=>{
+window.onload=()=>{
   setTimeout(()=>{
     splash.style.opacity=0;
     setTimeout(()=>splash.remove(),400);
