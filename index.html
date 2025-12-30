@@ -139,6 +139,33 @@ window.onload = ()=>{
     }
   },1500);
 };
+
+document.addEventListener("keydown", e=>{
+  const cards = document.querySelectorAll(".card");
+  let index = [...cards].findIndex(c=>c.classList.contains("focus"));
+
+  if(index < 0 && cards.length){
+    cards[0].classList.add("focus");
+    return;
+  }
+
+  if(e.key==="ArrowRight") index++;
+  if(e.key==="ArrowLeft") index--;
+  if(e.key==="ArrowDown") index+=5;
+  if(e.key==="ArrowUp") index-=5;
+
+  if(cards[index]){
+    document.querySelector(".focus")?.classList.remove("focus");
+    cards[index].classList.add("focus");
+    cards[index].scrollIntoView({block:"center"});
+  }
+
+  if(e.key==="Enter"){
+    cards[index]?.click();
+  }
+});
+
+  
 </script>
 
 </body>
