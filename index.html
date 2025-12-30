@@ -12,6 +12,16 @@
 
 <body>
 
+
+  <!-- SPLASH -->
+<div id="splash">
+  <div class="splash-box">
+    <img src="logo.svg">
+    <span>Cargando...</span>
+  </div>
+</div>
+
+  
   <!-- SPLASH ANDROID TV -->
 <div id="splash">
   <div class="splash-box">
@@ -34,6 +44,18 @@
 
 <script>
 
+// SPLASH
+window.onload = ()=>{
+  setTimeout(()=>{
+    const s = document.getElementById("splash");
+    s.style.opacity = "0";
+    setTimeout(()=> s.style.display="none",600);
+  },2000);
+};
+
+
+
+  
 // SPLASH
 window.onload = ()=>{
   setTimeout(()=>{
