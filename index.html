@@ -1,19 +1,14 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KLYRION TV</title>
-<link rel="stylesheet" href="style.css">
-
-<!-- ANDROID TV -->
-<meta name="tv:immersive" content="true">
+  <meta charset="UTF-8">
+  <title>App IPTV</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-
-  <!-- SPLASH -->
+<!-- SPLASH -->
 <div id="splash">
   <div class="splash-box">
     <img src="logo.svg">
@@ -21,138 +16,28 @@
   </div>
 </div>
 
-  
-  <!-- SPLASH ANDROID TV -->
-<div id="splash">
-  <div class="splash-box">
-    <img src="logo.svg" alt="KLYRION">
-    <span>Cargando…</span>
-  </div>
+<!-- CONTENIDO -->
+<div id="iptv" class="screen">
+  <input type="file" accept=".m3u,.m3u8" onchange="importM3U(this)">
+  <div id="grid"></div>
 </div>
 
-
-  
-<header class="topbar">
-  <h1>KLYRION TV</h1>
-  <button onclick="show('iptv')">EN VIVO</button>
-  <button onclick="m3uInput.click()">IMPORTAR M3U</button>
-</header>
-
-<input type="file" id="m3uInput" accept=".m3u,.txt" hidden>
-
-<main id="content"></main>
-
 <script>
-const SAVED_M3U = localStorage.getItem("USER_M3U");
+/* =========================
+   IMPORTAR M3U
+========================= */
+function importM3U(input){
+  const file = input.files[0];
+  if(!file) return;
 
-// SPLASH
-window.onload = ()=>{
-  setTimeout(()=>{
-    const s = document.getElementById("splash");
-    s.style.opacity = "0";
-    setTimeout(()=> s.style.display="none",600);
-  },2000);
-};
-
-
-
-  
-// SPLASH
-window.onload = ()=>{
-  setTimeout(()=>{
-    document.getElementById("splash").style.opacity="0";
-    setTimeout(()=>{
-      document.getElementById("splash").style.display="none";
-    },600);
-  },2000);
-};
-
-
-  
-const DATA_URL = "data.json";
-const EPG_URL = "epg.xml";   // tu XMLTV
-let DATA = {};
-let CURRENT = [];
-let EPG = {};
-
-/* CARGA */
-async function loadData(){
-
-  // 🟢 INTENTAR CARGAR M3U GUARDADA
-  const saved = localStorage.getItem("USER_M3U");
-
-  if(saved){
-    try{
-      const list = JSON.parse(saved);
-
-      if(list.length > 0){
-        render(list);
-        return;
-      }
-    }catch(e){
-      localStorage.removeItem("USER_M3U");
-    }
-  }
-
-  // 🔵 SI NO HAY M3U, MOSTRAR PANTALLA DE CARGA / IMPORTAR
-  show("iptv");
-}
-
-
-/* EPG */
-async function loadEPG(){
-  try{
-    const r = await fetch(EPG_URL);
-    const t = await r.text();
-    const xml = new DOMParser().parseFromString(t,"text/xml");
-    xml.querySelectorAll("programme").forEach(p=>{
-      const id = p.getAttribute("channel");
-      const title = p.querySelector("title")?.textContent || "";
-      const start = p.getAttribute("start");
-      if(!EPG[id]) EPG[id]=[];
-      EPG[id].push({title,start});
-    });
-  }catch(e){}
-}
-
-/* MOSTRAR */
-function show(type){
-  CURRENT = DATA[type] || [];
-  render(CURRENT);
-}
-
-/* RENDER TV + EPG */
-function render(list){
-  content.innerHTML="";
-  list.forEach(item=>{
-    const now = EPG[item.id]?.[0]?.title || "En vivo";
-    const next = EPG[item.id]?.[1]?.title || "";
-    const card = document.createElement("div");
-    card.className="tv-card";
-    card.tabIndex=0;
-    card.innerHTML=`
-      <img src="${item.img}">
-      <div class="tv-title">${item.title}</div>
-      <div class="epg-now">Ahora: ${now}</div>
-      <div class="epg-next">${next ? "Luego: "+next : ""}</div>
-    `;
-    card.onclick = ()=> openExternal(item.url);
-    content.appendChild(card);
-  });
-}
-
-/* REPRODUCTOR EXTERNO */
-function openExternal(url){
-  window.location.href = url;
-}
-
-/* IMPORTAR M3U */
-m3uInput.onchange = e =>{
   const reader = new FileReader();
-  reader.onload = ()=> parseM3U(reader.result);
-  reader.readAsText(e.target.files[0]);
-};
+  reader.onload = e => parseM3U(e.target.result);
+  reader.readAsText(file);
+}
 
+/* =========================
+   PARSE + GUARDAR M3U
+========================= */
 function parseM3U(text){
   const lines = text.split("\n");
   const list = [];
@@ -164,7 +49,6 @@ function parseM3U(text){
     }
     if(l.startsWith("http")){
       list.push({
-        id: name.toLowerCase().replace(/\s+/g,"."),
         title: name || "Canal",
         img: "https://via.placeholder.com/320x180.webp",
         url: l.trim()
@@ -172,14 +56,67 @@ function parseM3U(text){
     }
   });
 
-  // 🔒 GUARDAR LISTA
   localStorage.setItem("USER_M3U", JSON.stringify(list));
-
   render(list);
 }
 
+/* =========================
+   RENDER
+========================= */
+function render(list){
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
 
+  list.forEach(ch=>{
+    grid.innerHTML += `
+      <div class="card" onclick="play('${ch.url}')">
+        <img src="${ch.img}">
+        <span>${ch.title}</span>
+      </div>
+    `;
+  });
+}
+
+/* =========================
+   PLAY
+========================= */
+function play(url){
+  window.open(url,"_blank");
+}
+
+/* =========================
+   LOAD DATA (FIX)
+========================= */
+function loadData(){
+  const saved = localStorage.getItem("USER_M3U");
+
+  if(saved){
+    try{
+      const list = JSON.parse(saved);
+      if(list.length){
+        render(list);
+        return;
+      }
+    }catch(e){
+      localStorage.removeItem("USER_M3U");
+    }
+  }
+}
+
+/* =========================
+   INIT
+========================= */
 loadData();
+
+window.onload = ()=>{
+  setTimeout(()=>{
+    const s = document.getElementById("splash");
+    if(s){
+      s.style.opacity="0";
+      setTimeout(()=>s.remove(),600);
+    }
+  },1500);
+};
 </script>
 
 </body>
