@@ -11,19 +11,17 @@
 
 <!-- SPLASH -->
 <div id="splash">
-  <div class="splash-box">
-    <span>Cargando…</span>
-  </div>
+  <span>Cargando…</span>
 </div>
 
 <!-- CONTROLES -->
 <div id="controls">
-  <input id="urlInput" type="text"
-    placeholder="Pegar link (m3u, m3u8, mp4, webm)">
+  <input type="text" id="urlInput"
+    placeholder="Pegar link (m3u, m3u8, mp4, mkv, ts, avi, flv)">
   <button onclick="loadFromURL()">Reproducir link</button>
 
   <input type="file"
-    accept=".m3u,.m3u8,.mp4,.webm,.ogg"
+    accept=".m3u,.m3u8,.mp4,.mkv,.ts,.avi,.flv,.webm"
     onchange="loadFromFile(this)">
 </div>
 
@@ -38,7 +36,7 @@
 
 <script>
 /* =====================
-   LINK DIRECTO
+   LINK
 ===================== */
 function loadFromURL(){
   const url = document.getElementById("urlInput").value.trim();
@@ -52,13 +50,15 @@ function loadFromURL(){
 }
 
 /* =====================
-   ARCHIVO LOCAL
+   ARCHIVO
 ===================== */
 function loadFromFile(input){
   const file = input.files[0];
   if(!file) return;
 
-  if(file.name.endsWith(".m3u") || file.name.endsWith(".m3u8")){
+  const name = file.name.toLowerCase();
+
+  if(name.endsWith(".m3u") || name.endsWith(".m3u8")){
     const r = new FileReader();
     r.onload = e => parseM3U(e.target.result);
     r.readAsText(file);
@@ -73,21 +73,22 @@ function loadFromFile(input){
 function parseM3U(text){
   const lines = text.split("\n");
   const list = [];
-  let name = "";
+  let title = "";
 
   lines.forEach(l=>{
+    l = l.trim();
     if(l.startsWith("#EXTINF")){
-      name = l.split(",").pop().trim();
+      title = l.split(",").pop().trim();
     }
     if(l.startsWith("http")){
       list.push({
-        title: name || "Stream",
-        url: l.trim()
+        title: title || "Canal",
+        url: l
       });
     }
   });
 
-  localStorage.setItem("USER_M3U", JSON.stringify(list));
+  localStorage.setItem("M3U_LIST", JSON.stringify(list));
   render(list);
 }
 
@@ -95,26 +96,47 @@ function parseM3U(text){
    RENDER
 ===================== */
 function render(list){
-  const g = document.getElementById("grid");
-  g.innerHTML = "";
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
 
   list.forEach(i=>{
-    g.innerHTML += `
+    grid.innerHTML += `
       <div class="card" onclick="play('${i.url}')">
-        <span>${i.title}</span>
+        ${i.title}
       </div>`;
   });
 }
 
 /* =====================
-   PLAYER
+   PLAYER INT / EXT
 ===================== */
-function play(src){
-  const box = document.getElementById("playerBox");
-  const video = document.getElementById("player");
-  box.style.display = "flex";
-  video.src = src;
-  video.play();
+function play(url){
+  const lower = url.toLowerCase();
+  const external = [".avi", ".flv"];
+
+  if(external.some(f => lower.endsWith(f))){
+    openExternal(url);
+    return;
+  }
+
+  try{
+    const box = document.getElementById("playerBox");
+    const video = document.getElementById("player");
+    box.style.display = "flex";
+    video.src = url;
+    video.play();
+
+    video.onerror = ()=>{
+      openExternal(url);
+    };
+  }catch(e){
+    openExternal(url);
+  }
+}
+
+function openExternal(url){
+  alert("Se abrirá en un reproductor externo");
+  window.location.href = url;
 }
 
 function closePlayer(){
@@ -126,16 +148,16 @@ function closePlayer(){
 }
 
 /* =====================
-   CARGA AUTOMÁTICA
+   AUTOLOAD
 ===================== */
 (function(){
-  const s = localStorage.getItem("USER_M3U");
-  if(s){
+  const saved = localStorage.getItem("M3U_LIST");
+  if(saved){
     try{
-      const l = JSON.parse(s);
-      if(l.length) render(l);
+      const list = JSON.parse(saved);
+      if(list.length) render(list);
     }catch(e){
-      localStorage.removeItem("USER_M3U");
+      localStorage.removeItem("M3U_LIST");
     }
   }
 })();
@@ -144,8 +166,8 @@ window.onload = ()=>{
   setTimeout(()=>{
     const s=document.getElementById("splash");
     s.style.opacity=0;
-    setTimeout(()=>s.remove(),600);
-  },800);
+    setTimeout(()=>s.remove(),500);
+  },700);
 };
 </script>
 
