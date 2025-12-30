@@ -12,6 +12,16 @@
 
 <body>
 
+  <!-- SPLASH ANDROID TV -->
+<div id="splash">
+  <div class="splash-box">
+    <img src="logo.svg" alt="KLYRION">
+    <span>Cargando…</span>
+  </div>
+</div>
+
+
+  
 <header class="topbar">
   <h1>KLYRION TV</h1>
   <button onclick="show('iptv')">EN VIVO</button>
@@ -23,6 +33,19 @@
 <main id="content"></main>
 
 <script>
+
+// SPLASH
+window.onload = ()=>{
+  setTimeout(()=>{
+    document.getElementById("splash").style.opacity="0";
+    setTimeout(()=>{
+      document.getElementById("splash").style.display="none";
+    },600);
+  },2000);
+};
+
+
+  
 const DATA_URL = "data.json";
 const EPG_URL = "epg.xml";   // tu XMLTV
 let DATA = {};
