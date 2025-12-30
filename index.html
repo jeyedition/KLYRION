@@ -43,6 +43,7 @@
 <main id="content"></main>
 
 <script>
+const SAVED_M3U = localStorage.getItem("USER_M3U");
 
 // SPLASH
 window.onload = ()=>{
@@ -76,9 +77,17 @@ let EPG = {};
 
 /* CARGA */
 async function loadData(){
+
+  // 🟢 SI YA HAY M3U GUARDADA
+  if(SAVED_M3U){
+    const list = JSON.parse(SAVED_M3U);
+    render(list);
+    return;
+  }
+
+  // 🔵 SI NO HAY M3U, CARGA POR DEFECTO
   const r = await fetch(DATA_URL);
   DATA = await r.json();
-  await loadEPG();
   show("iptv");
 }
 
@@ -140,6 +149,7 @@ function parseM3U(text){
   const lines = text.split("\n");
   const list = [];
   let name = "";
+
   lines.forEach(l=>{
     if(l.startsWith("#EXTINF")){
       name = l.split(",").pop().trim();
@@ -147,14 +157,19 @@ function parseM3U(text){
     if(l.startsWith("http")){
       list.push({
         id: name.toLowerCase().replace(/\s+/g,"."),
-        title: name,
+        title: name || "Canal",
         img: "https://via.placeholder.com/320x180.webp",
         url: l.trim()
       });
     }
   });
+
+  // 🔒 GUARDAR LISTA
+  localStorage.setItem("USER_M3U", JSON.stringify(list));
+
   render(list);
 }
+
 
 loadData();
 </script>
