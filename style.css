@@ -1,24 +1,19 @@
-/* =====================
-   RESET + BASE
-===================== */
 *{
   box-sizing:border-box;
 }
 
 body{
   margin:0;
-  background:#020617;
+  background:#000;
   color:#e5e7eb;
   font-family:Arial, sans-serif;
 }
 
-/* =====================
-   SPLASH
-===================== */
+/* SPLASH */
 #splash{
   position:fixed;
   inset:0;
-  background:#000814;
+  background:#020617;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -32,19 +27,16 @@ body{
 
 .splash-box img{
   width:180px;
-  max-width:70%;
-  animation:zoom 1.5s infinite ease-in-out;
 }
 
-@keyframes zoom{
-  0%{transform:scale(1)}
-  50%{transform:scale(1.08)}
-  100%{transform:scale(1)}
+.splash-box span{
+  margin-top:10px;
+  display:block;
+  font-size:14px;
+  color:#9ca3af;
 }
 
-/* =====================
-   IPTV GRID
-===================== */
+/* IPTV */
 #iptv{
   padding:10px;
 }
@@ -52,11 +44,11 @@ body{
 #iptv input{
   width:100%;
   padding:10px;
-  background:#020617;
-  color:#e5e7eb;
-  border:1px solid #1f2937;
-  border-radius:8px;
   margin-bottom:12px;
+  background:#020617;
+  border:1px solid #1f2937;
+  color:#fff;
+  border-radius:8px;
 }
 
 #grid{
@@ -65,20 +57,17 @@ body{
   gap:10px;
 }
 
-/* =====================
-   CARD
-===================== */
+/* CARD */
 .card{
-  background:#020617;
+  background:#0b0b0b;
   border-radius:14px;
   overflow:hidden;
   cursor:pointer;
-  transition:transform .2s, box-shadow .2s;
+  transition:transform .2s;
 }
 
 .card:hover{
   transform:scale(1.05);
-  box-shadow:0 0 0 2px #22c55e;
 }
 
 .card img{
@@ -96,15 +85,12 @@ body{
   text-overflow:ellipsis;
 }
 
-/* =====================
-   PLAYER
-===================== */
+/* PLAYER */
 #playerBox{
   position:fixed;
   inset:0;
   background:#000;
   display:none;
-  flex-direction:column;
   z-index:9998;
 }
 
@@ -120,14 +106,11 @@ body{
   background:#ef4444;
   border:none;
   color:#fff;
-  padding:10px 14px;
+  padding:10px;
   border-radius:10px;
-  font-size:14px;
 }
 
-/* =====================
-   EPG
-===================== */
+/* EPG */
 #epgPanel{
   position:fixed;
   left:0;
@@ -139,4 +122,35 @@ body{
   display:none;
   overflow:auto;
   z-index:9997;
-  border
+  border-top:2px solid #22c55e;
+}
+
+#epgPanel h3{
+  margin:0 0 10px;
+  color:#22c55e;
+}
+
+.epg-item{
+  padding:8px 0;
+  border-bottom:1px solid #1f2937;
+}
+
+.epg-item span{
+  font-size:12px;
+  color:#9ca3af;
+}
+
+/* MOBILE */
+@media(max-width:600px){
+  #grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+  .card img{
+    height:90px;
+  }
+}
+
+/* ANDROID TV FOCUS */
+.card.focus{
+  outline:4px solid #22c55e;
+}
