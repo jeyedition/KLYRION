@@ -3,25 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Media Player</title>
+<title>Media IPTV</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <!-- SPLASH -->
-<div id="splash">
-  <span>Cargando…</span>
-</div>
+<div id="splash">Cargando…</div>
 
 <!-- CONTROLES -->
 <div id="controls">
   <input type="text" id="urlInput"
     placeholder="Pegar link (m3u, m3u8, mp4, mkv, ts, avi, flv)">
-  <button onclick="loadFromURL()">Reproducir link</button>
+  <button onclick="loadFromURL()">Cargar link</button>
 
   <input type="file"
-    accept=".m3u,.m3u8,.mp4,.mkv,.ts,.avi,.flv,.webm"
+    accept=".m3u,.m3u8,.mp4,.mkv,.ts,.avi,.flv"
     onchange="loadFromFile(this)">
 </div>
 
@@ -36,29 +34,30 @@
 
 <script>
 /* =====================
-   LINK
+   CARGAR LINK
 ===================== */
 function loadFromURL(){
-  const url = document.getElementById("urlInput").value.trim();
+  const url = urlInput.value.trim();
   if(!url) return;
 
   if(url.endsWith(".m3u") || url.endsWith(".m3u8")){
-    fetch(url).then(r=>r.text()).then(parseM3U);
+    fetch(url)
+      .then(r=>r.text())
+      .then(parseM3U)
+      .catch(()=>alert("No se pudo cargar la lista"));
   }else{
     play(url);
   }
 }
 
 /* =====================
-   ARCHIVO
+   CARGAR ARCHIVO
 ===================== */
 function loadFromFile(input){
   const file = input.files[0];
   if(!file) return;
 
-  const name = file.name.toLowerCase();
-
-  if(name.endsWith(".m3u") || name.endsWith(".m3u8")){
+  if(file.name.endsWith(".m3u") || file.name.endsWith(".m3u8")){
     const r = new FileReader();
     r.onload = e => parseM3U(e.target.result);
     r.readAsText(file);
@@ -71,7 +70,7 @@ function loadFromFile(input){
    PARSE M3U
 ===================== */
 function parseM3U(text){
-  const lines = text.split("\n");
+  const lines = text.split(/\r?\n/);
   const list = [];
   let title = "";
 
@@ -79,16 +78,13 @@ function parseM3U(text){
     l = l.trim();
     if(l.startsWith("#EXTINF")){
       title = l.split(",").pop().trim();
-    }
-    if(l.startsWith("http")){
-      list.push({
-        title: title || "Canal",
-        url: l
-      });
+    }else if(l.startsWith("http")){
+      list.push({ title: title || "Canal", url: l });
+      title = "";
     }
   });
 
-  localStorage.setItem("M3U_LIST", JSON.stringify(list));
+  localStorage.setItem("IPTV_LIST", JSON.stringify(list));
   render(list);
 }
 
@@ -96,37 +92,35 @@ function parseM3U(text){
    RENDER
 ===================== */
 function render(list){
-  const grid = document.getElementById("grid");
   grid.innerHTML = "";
-
   list.forEach(i=>{
-    grid.innerHTML += `
-      <div class="card" onclick="play('${i.url}')">
-        ${i.title}
-      </div>`;
+    const d = document.createElement("div");
+    d.className = "card";
+    d.textContent = i.title;
+    d.onclick = ()=> play(i.url);
+    grid.appendChild(d);
   });
 }
 
 /* =====================
-   PLAYER INT / EXT
+   PLAYER (INTERNO + VLC)
 ===================== */
 function play(url){
   const lower = url.toLowerCase();
-  const external = [".avi", ".flv"];
+  const external = [".avi",".flv"];
 
-  if(external.some(f => lower.endsWith(f))){
+  // formatos problemáticos -> VLC directo
+  if(external.some(e=>lower.endsWith(e))){
     openExternal(url);
     return;
   }
 
   try{
-    const box = document.getElementById("playerBox");
-    const video = document.getElementById("player");
-    box.style.display = "flex";
-    video.src = url;
-    video.play();
+    playerBox.style.display="flex";
+    player.src = url;
+    player.play();
 
-    video.onerror = ()=>{
+    player.onerror = ()=>{
       openExternal(url);
     };
   }catch(e){
@@ -135,39 +129,36 @@ function play(url){
 }
 
 function openExternal(url){
-  alert("Se abrirá en un reproductor externo");
+  alert("El stream se abrirá en un reproductor externo (VLC/MX)");
   window.location.href = url;
 }
 
 function closePlayer(){
-  const box = document.getElementById("playerBox");
-  const video = document.getElementById("player");
-  video.pause();
-  video.src = "";
-  box.style.display = "none";
+  player.pause();
+  player.src="";
+  playerBox.style.display="none";
 }
 
 /* =====================
    AUTOLOAD
 ===================== */
 (function(){
-  const saved = localStorage.getItem("M3U_LIST");
+  const saved = localStorage.getItem("IPTV_LIST");
   if(saved){
     try{
       const list = JSON.parse(saved);
       if(list.length) render(list);
     }catch(e){
-      localStorage.removeItem("M3U_LIST");
+      localStorage.removeItem("IPTV_LIST");
     }
   }
 })();
 
 window.onload = ()=>{
   setTimeout(()=>{
-    const s=document.getElementById("splash");
-    s.style.opacity=0;
-    setTimeout(()=>s.remove(),500);
-  },700);
+    splash.style.opacity=0;
+    setTimeout(()=>splash.remove(),400);
+  },600);
 };
 </script>
 
