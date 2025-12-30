@@ -21,37 +21,36 @@ body{
   transition:opacity .6s;
 }
 
-.splash-box{
-  text-align:center;
-}
+.splash-box{text-align:center}
+.splash-box img{width:160px}
+.splash-box span{color:#9ca3af}
 
-.splash-box img{
-  width:180px;
-}
-
-.splash-box span{
-  margin-top:10px;
-  display:block;
-  font-size:14px;
-  color:#9ca3af;
-}
-
-/* IPTV */
-#iptv{
+/* CONTROLES */
+#controls{
   padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
 }
 
-#iptv input{
-  width:100%;
+#controls input,
+#controls button{
   padding:10px;
-  margin-bottom:12px;
-  background:#020617;
-  border:1px solid #1f2937;
-  color:#fff;
   border-radius:8px;
+  border:1px solid #1f2937;
+  background:#020617;
+  color:#fff;
 }
 
+#controls button{
+  background:#22c55e;
+  border:none;
+  font-weight:bold;
+}
+
+/* GRID */
 #grid{
+  padding:10px;
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
   gap:10px;
@@ -110,36 +109,6 @@ body{
   border-radius:10px;
 }
 
-/* EPG */
-#epgPanel{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  max-height:45%;
-  background:#020617;
-  padding:12px;
-  display:none;
-  overflow:auto;
-  z-index:9997;
-  border-top:2px solid #22c55e;
-}
-
-#epgPanel h3{
-  margin:0 0 10px;
-  color:#22c55e;
-}
-
-.epg-item{
-  padding:8px 0;
-  border-bottom:1px solid #1f2937;
-}
-
-.epg-item span{
-  font-size:12px;
-  color:#9ca3af;
-}
-
 /* MOBILE */
 @media(max-width:600px){
   #grid{
@@ -148,9 +117,4 @@ body{
   .card img{
     height:90px;
   }
-}
-
-/* ANDROID TV FOCUS */
-.card.focus{
-  outline:4px solid #22c55e;
 }
