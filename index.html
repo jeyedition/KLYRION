@@ -17,11 +17,16 @@
   </div>
 </div>
 
-<!-- IPTV -->
-<div id="iptv">
+<!-- CONTROLES -->
+<div id="controls">
+  <input type="text" id="urlInput" placeholder="Pegar link (m3u8, mp4, hls)">
+  <button onclick="playURL()">Reproducir link</button>
+
   <input type="file" accept=".m3u,.m3u8" onchange="importM3U(this)">
-  <div id="grid"></div>
 </div>
+
+<!-- GRID -->
+<div id="grid"></div>
 
 <!-- PLAYER -->
 <div id="playerBox">
@@ -29,23 +34,31 @@
   <button onclick="closePlayer()">✕</button>
 </div>
 
-<!-- EPG -->
-<div id="epgPanel">
-  <h3 id="epgTitle"></h3>
-  <div id="epgList"></div>
-</div>
-
 <script>
-/* ===== IMPORTAR M3U ===== */
+/* =====================
+   REPRODUCIR LINK
+===================== */
+function playURL(){
+  const url = document.getElementById("urlInput").value.trim();
+  if(!url) return;
+  play(url);
+}
+
+/* =====================
+   IMPORTAR ARCHIVO M3U
+===================== */
 function importM3U(input){
   const file = input.files[0];
   if(!file) return;
+
   const reader = new FileReader();
   reader.onload = e => parseM3U(e.target.result);
   reader.readAsText(file);
 }
 
-/* ===== PARSE + GUARDAR ===== */
+/* =====================
+   PARSE M3U
+===================== */
 function parseM3U(text){
   const lines = text.split("\n");
   const list = [];
@@ -57,7 +70,7 @@ function parseM3U(text){
     }
     if(l.startsWith("http")){
       list.push({
-        title: name || "Canal",
+        title: name || "Stream",
         img: "https://via.placeholder.com/320x180.webp",
         url: l.trim()
       });
@@ -68,15 +81,16 @@ function parseM3U(text){
   render(list);
 }
 
-/* ===== RENDER ===== */
+/* =====================
+   RENDER
+===================== */
 function render(list){
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
 
   list.forEach(c=>{
     grid.innerHTML += `
-      <div class="card"
-        onclick="play('${c.url}');showEPG('${c.title}')">
+      <div class="card" onclick="play('${c.url}')">
         <img src="${c.img}">
         <span>${c.title}</span>
       </div>
@@ -84,12 +98,15 @@ function render(list){
   });
 }
 
-/* ===== PLAYER ===== */
+/* =====================
+   PLAYER
+===================== */
 function play(url){
   const box = document.getElementById("playerBox");
   const video = document.getElementById("player");
   box.style.display = "flex";
   video.src = url;
+  video.play();
 }
 
 function closePlayer(){
@@ -100,8 +117,10 @@ function closePlayer(){
   box.style.display = "none";
 }
 
-/* ===== LOAD DATA ===== */
-function loadData(){
+/* =====================
+   CARGA AUTOMÁTICA
+===================== */
+function loadSaved(){
   const saved = localStorage.getItem("USER_M3U");
   if(saved){
     try{
@@ -113,59 +132,7 @@ function loadData(){
   }
 }
 
-/* ===== EPG ===== */
-const EPG_URL = "https://TU-EPG/guia.xml"; // CAMBIA
-let EPG_DATA = {};
-
-async function loadEPG(){
-  try{
-    const r = await fetch(EPG_URL);
-    const t = await r.text();
-    const xml = new DOMParser().parseFromString(t,"text/xml");
-
-    xml.querySelectorAll("programme").forEach(p=>{
-      const ch = p.getAttribute("channel");
-      if(!EPG_DATA[ch]) EPG_DATA[ch] = [];
-      EPG_DATA[ch].push({
-        title: p.querySelector("title")?.textContent || "",
-        start: p.getAttribute("start"),
-        stop: p.getAttribute("stop")
-      });
-    });
-  }catch(e){}
-}
-
-function showEPG(channel){
-  const panel = document.getElementById("epgPanel");
-  const list = document.getElementById("epgList");
-  document.getElementById("epgTitle").textContent = channel;
-
-  panel.style.display = "block";
-  list.innerHTML = "";
-
-  const epg = EPG_DATA[channel];
-  if(!epg){
-    list.innerHTML = "<p>Sin información</p>";
-    return;
-  }
-
-  epg.slice(0,8).forEach(p=>{
-    list.innerHTML += `
-      <div class="epg-item">
-        <strong>${p.title}</strong>
-        <span>${fmt(p.start)} - ${fmt(p.stop)}</span>
-      </div>
-    `;
-  });
-}
-
-function fmt(t){
-  return t ? t.substring(8,10)+":"+t.substring(10,12) : "";
-}
-
-/* ===== INIT ===== */
-loadData();
-loadEPG();
+loadSaved();
 
 window.onload = ()=>{
   setTimeout(()=>{
