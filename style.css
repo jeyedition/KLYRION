@@ -69,3 +69,38 @@ main{
   font-size:11px;
   color:#9ca3af;
 }
+/* SPLASH ANDROID TV */
+#splash{
+  position:fixed;
+  inset:0;
+  background:#000814;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  transition:opacity .6s;
+}
+
+.splash-box{
+  text-align:center;
+}
+
+.splash-box img{
+  width:220px;
+  max-width:70%;
+  animation:zoom 1.5s infinite ease-in-out;
+}
+
+.splash-box span{
+  display:block;
+  margin-top:16px;
+  font-size:14px;
+  color:#9ca3af;
+  letter-spacing:1px;
+}
+
+@keyframes zoom{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.08)}
+  100%{transform:scale(1)}
+}
