@@ -78,18 +78,26 @@ let EPG = {};
 /* CARGA */
 async function loadData(){
 
-  // 🟢 SI YA HAY M3U GUARDADA
-  if(SAVED_M3U){
-    const list = JSON.parse(SAVED_M3U);
-    render(list);
-    return;
+  // 🟢 INTENTAR CARGAR M3U GUARDADA
+  const saved = localStorage.getItem("USER_M3U");
+
+  if(saved){
+    try{
+      const list = JSON.parse(saved);
+
+      if(list.length > 0){
+        render(list);
+        return;
+      }
+    }catch(e){
+      localStorage.removeItem("USER_M3U");
+    }
   }
 
-  // 🔵 SI NO HAY M3U, CARGA POR DEFECTO
-  const r = await fetch(DATA_URL);
-  DATA = await r.json();
+  // 🔵 SI NO HAY M3U, MOSTRAR PANTALLA DE CARGA / IMPORTAR
   show("iptv");
 }
+
 
 /* EPG */
 async function loadEPG(){
