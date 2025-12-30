@@ -4,10 +4,9 @@ body{
   margin:0;
   background:#000;
   color:#fff;
-  font-family:Arial, sans-serif;
+  font-family:Arial,sans-serif;
 }
 
-/* SPLASH */
 #splash{
   position:fixed;
   inset:0;
@@ -16,10 +15,9 @@ body{
   align-items:center;
   justify-content:center;
   z-index:9999;
-  transition:.5s;
+  transition:.4s;
 }
 
-/* CONTROLES */
 #controls{
   padding:10px;
   display:flex;
@@ -42,11 +40,10 @@ body{
   font-weight:bold;
 }
 
-/* GRID */
 #grid{
   padding:10px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
   gap:10px;
 }
 
@@ -54,11 +51,10 @@ body{
   background:#111;
   padding:12px;
   border-radius:10px;
-  cursor:pointer;
   text-align:center;
+  cursor:pointer;
 }
 
-/* PLAYER */
 #playerBox{
   position:fixed;
   inset:0;
@@ -83,9 +79,6 @@ body{
   border-radius:10px;
 }
 
-/* MOBILE */
 @media(max-width:600px){
-  #grid{
-    grid-template-columns:repeat(2,1fr);
-  }
+  #grid{grid-template-columns:repeat(2,1fr)}
 }
