@@ -7,6 +7,10 @@
 </head>
 
 <body>
+<div id="playerBox">
+  <video id="player" controls autoplay></video>
+  <button onclick="closePlayer()">✕ Cerrar</button>
+</div>
 
 <!-- SPLASH -->
 <div id="splash">
@@ -23,6 +27,24 @@
 </div>
 
 <script>
+  function play(url){
+  const box = document.getElementById("playerBox");
+  const video = document.getElementById("player");
+
+  box.style.display="flex";
+  video.src = url;
+  video.play();
+}
+
+function closePlayer(){
+  const box = document.getElementById("playerBox");
+  const video = document.getElementById("player");
+
+  video.pause();
+  video.src="";
+  box.style.display="none";
+}
+
 /* =========================
    IMPORTAR M3U
 ========================= */
